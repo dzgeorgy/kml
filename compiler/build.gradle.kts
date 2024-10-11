@@ -9,5 +9,6 @@ kotlin {
 
 dependencies {
     implementation(libs.ksp.api)
+    implementation(libs.poet)
     implementation(project(":lib"))
 }

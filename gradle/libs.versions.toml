@@ -3,8 +3,10 @@
 [versions]
 kotlin = "2.0.21"
 ksp = "2.0.21-1.0.25"
+poet = "1.18.1"
 
 [libraries]
+poet = { module = "com.squareup:kotlinpoet-ksp", version.ref = "poet" }
 ksp-api = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
 
 [plugins]
