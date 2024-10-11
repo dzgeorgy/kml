@@ -15,4 +15,6 @@ kotlin {
 dependencies {
     implementation(project(":lib"))
     ksp(project(":compiler"))
+
+    implementation(project(":sample_external"))
 }

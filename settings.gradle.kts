@@ -12,4 +12,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "kml"
-include(":sample", ":lib", ":compiler")
+include(":sample", ":lib", ":compiler", ":sample_external")
