@@ -7,7 +7,7 @@ import com.google.devtools.ksp.processing.SymbolProcessorProvider
 class KmlProcessorProvider : SymbolProcessorProvider {
 
     override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor {
-        return KmlProcessor()
+        return KmlProcessor(environment.codeGenerator)
     }
 
 }
