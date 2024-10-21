@@ -16,17 +16,18 @@ fun main() {
 @Map(TrackEntity::class)
 @Map(TrackModel::class)
 data class Track(
+    @Alias("trackName", "title")
     val name: String,
     var length: Float,
     val author: String
 )
 
 class TrackModel(
-    val name: CharSequence,
+    val trackName: CharSequence,
     val length: Float,
     val author: CharSequence
 ) {
     override fun toString(): String {
-        return "TrackModel(name=$name, length=$length, author=$author)"
+        return "TrackModel(trackName=$trackName, length=$length, author=$author)"
     }
 }

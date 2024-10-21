@@ -1,7 +1,9 @@
 package dev.dzgeorgy.kml
 
 import com.google.devtools.ksp.processing.Resolver
-import com.google.devtools.ksp.symbol.*
+import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSPropertyDeclaration
+import com.google.devtools.ksp.symbol.KSType
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.ksp.toTypeName
 
@@ -17,7 +19,9 @@ class KmlMapProcessor {
             .map { pair ->
                 val args = pair.target.constructorParams.associateWith { param ->
                     pair.source.properties.find { param.name == it.name && param.type.isAssignableFrom(it.type) }
-                        ?: error("Unable to find matching property for $param")
+                        ?: pair.source.properties.find {
+                            it.aliases.value.contains(param.name) && param.type.isAssignableFrom(it.type)
+                        } ?: error("Unable to find matching property for $param")
                 }
                 MappingData(
                     pair.source.type,
@@ -50,9 +54,26 @@ class KmlMapProcessor {
     private fun Sequence<KSClassDeclaration>.getProperties() = map { klass ->
         val props = propertiesCache.getOrPut(klass) {
             println("Caching properties for: $klass")
-            klass.getAllProperties().map { ParameterData(it.simpleName.asString(), it.type.resolve()) }.toSet()
+            klass.getAllProperties()
+                .map {
+                    ParameterData(
+                        name = it.simpleName.asString(),
+                        type = it.type.resolve(),
+                        aliases = it.resolveAliases()
+                    )
+                }
+                .toSet()
         }.apply { println("Loaded properties for: $klass") }
         SourceData(klass, props)
+    }
+
+    private fun KSPropertyDeclaration.resolveAliases(): Lazy<List<String>> = lazy {
+        annotations.filter { it.shortName.asString() == Alias::class.simpleName }
+            .filter { it.annotationType.resolve().declaration.qualifiedName?.asString() == Alias::class.qualifiedName }
+            .flatMap { annotation ->
+                @Suppress("UNCHECKED_CAST")
+                annotation.arguments.first().value as ArrayList<String>
+            }.toList()
     }
 
     private fun Sequence<KSClassDeclaration>.getConstructorParameters() = map { klass ->
@@ -89,10 +110,13 @@ data class MappingPair(
 
 data class ParameterData(
     val name: String,
-    val type: KSType
+    val type: KSType,
+    val aliases: Lazy<List<String>> = lazy { emptyList() }
 ) {
     override fun toString(): String {
-        return "$name: $type"
+        return "$name${
+            aliases.value.takeIf { it.isNotEmpty() }?.joinToString(prefix = " (", postfix = ")").orEmpty()
+        }: $type"
     }
 }
 
